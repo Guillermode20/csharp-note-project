@@ -4,6 +4,8 @@ using System.IO;
 
 class Program
 {
+    private static readonly string connectionString = $"Data Source=notes.db;Version=3;";
+
     static void Main(string[] args)
     {
         // Create SQLite database function
@@ -73,8 +75,6 @@ class Program
 
     static bool NoteExists(string noteTitle)
     {
-        string databasePath = "notes.db";
-        string connectionString = $"Data Source={databasePath};Version=3;";
         using (var connection = new SQLiteConnection(connectionString))
         {
             connection.Open();
@@ -94,14 +94,47 @@ class Program
         if (!File.Exists(databasePath))
         {
             SQLiteConnection.CreateFile(databasePath);
-            string connectionString = $"Data Source={databasePath};Version=3;";
-            using (var connection = new SQLiteConnection(connectionString))
+        }
+
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+
+            // Enable WAL mode
+            using (var cmd = new SQLiteCommand("PRAGMA journal_mode=WAL;", connection))
             {
-                connection.Open();
-                string createTableQuery = "CREATE TABLE IF NOT EXISTS Notes (Id INTEGER PRIMARY KEY AUTOINCREMENT, NoteTitle TEXT, NoteContent TEXT, CreatedAt DATETIME)";
-                using (var command = new SQLiteCommand(createTableQuery, connection))
+                cmd.ExecuteNonQuery();
+            }
+
+            string createTableQuery = "CREATE TABLE IF NOT EXISTS Notes (Id INTEGER PRIMARY KEY AUTOINCREMENT, NoteTitle TEXT, NoteContent TEXT, CreatedAt DATETIME)";
+            using (var command = new SQLiteCommand(createTableQuery, connection))
+            {
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    static int GetLowestAvailableId()
+    {
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            string query = "SELECT Id FROM Notes ORDER BY Id";
+            using (var command = new SQLiteCommand(query, connection))
+            {
+                using (var reader = command.ExecuteReader())
                 {
-                    command.ExecuteNonQuery();
+                    int expectedId = 1;
+                    while (reader.Read())
+                    {
+                        int currentId = reader.GetInt32(0);
+                        if (currentId != expectedId)
+                        {
+                            return expectedId;
+                        }
+                        expectedId++;
+                    }
+                    return expectedId;
                 }
             }
         }
@@ -109,14 +142,14 @@ class Program
 
     static void CreateNote(string noteTitle, string noteContent, DateTime createdAt)
     {
-        string databasePath = "notes.db";
-        string connectionString = $"Data Source={databasePath};Version=3;";
+        int noteId = GetLowestAvailableId();
         using (var connection = new SQLiteConnection(connectionString))
         {
             connection.Open();
-            string insertNoteQuery = "INSERT INTO Notes (NoteTitle, NoteContent, CreatedAt) VALUES (@NoteTitle, @NoteContent, @CreatedAt)";
+            string insertNoteQuery = "INSERT INTO Notes (Id, NoteTitle, NoteContent, CreatedAt) VALUES (@Id, @NoteTitle, @NoteContent, @CreatedAt)";
             using (var command = new SQLiteCommand(insertNoteQuery, connection))
             {
+                command.Parameters.AddWithValue("@Id", noteId);
                 command.Parameters.AddWithValue("@NoteTitle", noteTitle);
                 command.Parameters.AddWithValue("@NoteContent", noteContent);
                 command.Parameters.AddWithValue("@CreatedAt", createdAt);
@@ -129,6 +162,7 @@ class Program
 
     static void ViewNotes()
     {
+        SortDatabase();
         // check if database exists, if not, exit program
         string databasePath = "notes.db";
         if (!File.Exists(databasePath))
@@ -138,21 +172,23 @@ class Program
             return;
         }
 
-        Console.WriteLine("Notes:");
-        string connectionString = $"Data Source={databasePath};Version=3;";
-        using (var connection = new SQLiteConnection(connectionString))
+        else if (File.Exists(databasePath))
         {
-            connection.Open();
-            string selectNotesQuery = "SELECT * FROM Notes";
-            using (var command = new SQLiteCommand(selectNotesQuery, connection))
+            Console.WriteLine("Notes:");
+            using (var connection = new SQLiteConnection(connectionString))
             {
-                using (var reader = command.ExecuteReader())
+                connection.Open();
+                string selectNotesQuery = "SELECT * FROM Notes";
+                using (var command = new SQLiteCommand(selectNotesQuery, connection))
                 {
-                    while (reader.Read())
+                    using (var reader = command.ExecuteReader())
                     {
-                        int id = reader.GetInt32(0);
-                        string noteTitle = reader.GetString(1);
-                        Console.WriteLine($"{id}. {noteTitle}");
+                        while (reader.Read())
+                        {
+                            int id = reader.GetInt32(0);
+                            string noteTitle = reader.GetString(1);
+                            Console.WriteLine($"{id}. {noteTitle}");
+                        }
                     }
                 }
             }
@@ -179,11 +215,28 @@ class Program
                             Console.WriteLine($"Title: {noteTitle}");
                             Console.WriteLine($"Content: {noteContent}");
                             Console.WriteLine($"Created At: {createdAt}");
-                            Console.WriteLine("Press any key to return to the main menu...");
-                            Console.ReadKey();
+                            Console.WriteLine($"Press 1 to edit note content");
+                            Console.WriteLine($"Press 2 to delete note");
+                            Console.WriteLine($"Press 3 to go back to main menu");
+                            if (int.TryParse(Console.ReadLine(), out int userChoice))
                             {
-                                Console.Clear();
-                                ShowMainMenu();
+                                if (userChoice == 1)
+                                {
+                                    Console.Clear();
+                                    Console.WriteLine("Enter new note content:");
+                                    string newNoteContent = Console.ReadLine() ?? string.Empty;
+                                    UpdateNoteContent(noteId, newNoteContent);
+                                }
+
+                                else if (userChoice == 2)
+                                {
+                                    DeleteNoteById(noteId);
+                                }
+
+                                else
+                                {
+                                    ShowMainMenu();
+                                }
                             }
 
                         }
@@ -201,5 +254,54 @@ class Program
         }
 
         ShowMainMenu();
+    }
+
+    static void UpdateNoteContent(int noteId, string newNoteContent)
+    {
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            string updateNoteQuery = "UPDATE Notes SET NoteContent = @NoteContent WHERE Id = @Id";
+            using (var command = new SQLiteCommand(updateNoteQuery, connection))
+            {
+                command.Parameters.AddWithValue("@NoteContent", newNoteContent);
+                command.Parameters.AddWithValue("@Id", noteId);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    static void DeleteNoteById(int noteId)
+    {
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            string deleteNoteQuery = "DELETE FROM Notes WHERE Id = @Id";
+            using (var command = new SQLiteCommand(deleteNoteQuery, connection))
+            {
+                command.Parameters.AddWithValue("@Id", noteId);
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    static void SortDatabase() // function that sorts the database with oldest notes listed last
+    {
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            string sortNotesQuery = "SELECT * FROM Notes ORDER BY CreatedAt ASC";
+            using (var command = new SQLiteCommand(sortNotesQuery, connection))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int id = reader.GetInt32(0);
+                        string noteTitle = reader.GetString(1);
+                    }
+                }
+            }
+        }
     }
 }
