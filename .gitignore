@@ -216,6 +216,11 @@ PublishScripts/
 csx/
 *.build.csdef
 
+# ignore SQLite database files
+*.sqlite
+*.db
+*.sqlite3
+
 # Microsoft Azure Emulator
 ecf/
 rcf/

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("noteproject")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+942d949390fbd8d31d41c79130e1912c5ecceed8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2db9fe5b3456c5d1746ffdaffeba1bafc22dd872")]
 [assembly: System.Reflection.AssemblyProductAttribute("noteproject")]
 [assembly: System.Reflection.AssemblyTitleAttribute("noteproject")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
