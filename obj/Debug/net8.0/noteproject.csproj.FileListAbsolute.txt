@@ -40,3 +40,4 @@ C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learni
 C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\bin\Debug\net8.0\runtimes\win\lib\netcoreapp3.0\System.Windows.Extensions.dll
 C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\noteproject.csproj.AssemblyReference.cache
 C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\noteproj.BA2BAC8A.Up2Date
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\noteproject.sourcelink.json

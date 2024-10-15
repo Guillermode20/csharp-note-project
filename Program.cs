@@ -8,40 +8,83 @@ class Program
     {
         // Create SQLite database function
         InitialiseDatabase();
+        ShowMainMenu();
+    }
+
+    static void ShowMainMenu()
+    {
+        Console.Clear();
         Console.WriteLine("Welcome to Note Taker!");
-        Console.WriteLine("Please enter your name:");
-        string username = Console.ReadLine();
-        Console.WriteLine($"Hello, {username}!");
-        
         // Start screen
-        Console.WriteLine("Press 1 to create a New Note!");
-        Console.WriteLine("Press 2 to View Notes!");
-        Console.WriteLine("Press 3 to Exit!");
-        
+        Console.WriteLine("Enter 1 to create a New Note!");
+        Console.WriteLine("Enter 2 to View Notes!");
+        Console.WriteLine("Enter 3 to Exit!");
+
         // User input
-        string userinput = Console.ReadLine();
-        if (userinput == "1")
+        string userinput = Console.ReadLine() ?? string.Empty;
+        Console.Clear();
+
+        if (userinput == "1") // new note 
         {
-            Console.WriteLine("New Note");
-            Console.WriteLine($"Hello, {username}!");
-            Console.WriteLine("Please Enter Note Title");
-            string noteTitle = Console.ReadLine();
-            DateTime createdAt = DateTime.Now;
-            Console.WriteLine($"Note created on: {createdAt}");
-            Console.WriteLine("Please Enter Note Content");
-            string noteContent = Console.ReadLine();
-            
-            // Insert the note into the database
-            CreateNote(noteTitle, noteContent, createdAt);
+            CreateNewNote();
         }
-        else if (userinput == "2")
+        else if (userinput == "2") // view note 
         {
             ViewNotes();
         }
-        else if (userinput == "3")
+        else if (userinput == "3") // exit 
         {
             Console.WriteLine("Exit");
             Environment.Exit(0);
+        }
+        else
+        {
+            Console.WriteLine("Invalid input. Please try again.");
+            ShowMainMenu();
+        }
+    }
+
+    static void CreateNewNote()
+    {
+        Console.WriteLine("New Note");
+        Console.WriteLine("Please Enter Note Title");
+        string noteTitle = Console.ReadLine() ?? string.Empty;
+        Console.Clear();
+
+        if (NoteExists(noteTitle))
+        {
+            Console.WriteLine("Note with the same title already exists. Please try again.");
+            Console.ReadKey();
+            Console.Clear();
+            CreateNewNote();
+            return;
+        }
+
+        DateTime createdAt = DateTime.Now;
+        Console.WriteLine($"Note created on: {createdAt}");
+        Console.WriteLine("Please Enter Note Content");
+        string noteContent = Console.ReadLine() ?? string.Empty;
+        Console.Clear();
+
+        // Insert the note into the database
+        CreateNote(noteTitle, noteContent, createdAt);
+        ShowMainMenu();
+    }
+
+    static bool NoteExists(string noteTitle)
+    {
+        string databasePath = "notes.db";
+        string connectionString = $"Data Source={databasePath};Version=3;";
+        using (var connection = new SQLiteConnection(connectionString))
+        {
+            connection.Open();
+            string selectNoteQuery = "SELECT COUNT(*) FROM Notes WHERE NoteTitle = @NoteTitle";
+            using (var command = new SQLiteCommand(selectNoteQuery, connection))
+            {
+                command.Parameters.AddWithValue("@NoteTitle", noteTitle);
+                long noteCount = (long)command.ExecuteScalar();
+                return noteCount > 0;
+            }
         }
     }
 
@@ -61,11 +104,6 @@ class Program
                     command.ExecuteNonQuery();
                 }
             }
-        }
-        else if (File.Exists(databasePath))
-        {
-            // if database exists, don't create a new one
-            Console.WriteLine("Database already exists!");
         }
     }
 
@@ -96,30 +134,72 @@ class Program
         if (!File.Exists(databasePath))
         {
             Console.WriteLine("No Notes detected, make some!");
-            Environment.Exit(0);
+            ShowMainMenu();
+            return;
         }
 
-        if (File.Exists(databasePath))
+        Console.WriteLine("Notes:");
+        string connectionString = $"Data Source={databasePath};Version=3;";
+        using (var connection = new SQLiteConnection(connectionString))
         {
-            Console.WriteLine("Notes:");
-            string connectionString = $"Data Source={databasePath};Version=3;";
+            connection.Open();
+            string selectNotesQuery = "SELECT * FROM Notes";
+            using (var command = new SQLiteCommand(selectNotesQuery, connection))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        int id = reader.GetInt32(0);
+                        string noteTitle = reader.GetString(1);
+                        Console.WriteLine($"{id}. {noteTitle}");
+                    }
+                }
+            }
+        }
+
+        Console.WriteLine("Enter the Note ID to view the Note:");
+        if (int.TryParse(Console.ReadLine(), out int noteId))
+        {
+            Console.Clear();
+            string selectNoteByIdQuery = "SELECT NoteTitle, NoteContent, CreatedAt FROM Notes WHERE Id = @Id";
             using (var connection = new SQLiteConnection(connectionString))
             {
                 connection.Open();
-                string selectNotesQuery = "SELECT * FROM Notes";
-                using (var command = new SQLiteCommand(selectNotesQuery, connection))
+                using (var command = new SQLiteCommand(selectNoteByIdQuery, connection))
                 {
+                    command.Parameters.AddWithValue("@Id", noteId);
                     using (var reader = command.ExecuteReader())
                     {
-                        while (reader.Read())
+                        if (reader.Read())
                         {
-                            int id = reader.GetInt32(0);
-                            string noteTitle = reader.GetString(1);
-                            Console.WriteLine($"{id}. {noteTitle}");
+                            string noteTitle = reader.GetString(0);
+                            string noteContent = reader.GetString(1);
+                            DateTime createdAt = reader.GetDateTime(2);
+                            Console.WriteLine($"Title: {noteTitle}");
+                            Console.WriteLine($"Content: {noteContent}");
+                            Console.WriteLine($"Created At: {createdAt}");
+                            Console.WriteLine("Press any key to return to the main menu...");
+                            Console.ReadKey();
+                            {
+                                Console.Clear();
+                                ShowMainMenu();
+                            }
+
+                        }
+                        else
+                        {
+                            Console.WriteLine("Note not found.");
                         }
                     }
-                } 
+                }
             }
         }
+        else
+        {
+            Console.WriteLine("Invalid ID");
+        }
+
+        ShowMainMenu();
     }
 }
