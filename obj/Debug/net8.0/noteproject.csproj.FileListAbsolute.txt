@@ -1,0 +1,14 @@
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\bin\Debug\net8.0\noteproject.exe
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\bin\Debug\net8.0\noteproject.deps.json
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\bin\Debug\net8.0\noteproject.runtimeconfig.json
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\bin\Debug\net8.0\noteproject.dll
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\bin\Debug\net8.0\noteproject.pdb
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\noteproject.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\noteproject.AssemblyInfoInputs.cache
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\noteproject.AssemblyInfo.cs
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\noteproject.csproj.CoreCompileInputs.cache
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\noteproject.dll
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\refint\noteproject.dll
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\noteproject.pdb
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\noteproject.genruntimeconfig.cache
+C:\Users\willi\Proton Drive\WillPHick\My files\Personal Coding Project\c# learning\noteproject\obj\Debug\net8.0\ref\noteproject.dll
